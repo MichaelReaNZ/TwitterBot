@@ -1,26 +1,34 @@
 import puppeteer from 'puppeteer';
 
-  async function readTweetsFromFeed() {
-    const browser = await puppeteer.launch({ headless: false });
-    const page = await browser.newPage();
+async function readTweets() {
+  const browser = await puppeteer.connect({ browserURL: 'http://localhost:9222' });
+  const page = await browser.newPage();
+  await page.goto('https://twitter.com/home');
 
-    await page.goto('https://twitter.com/home');
+  await page.waitForSelector('[data-testid="tweet"]');
 
-    // Wait for the tweets to load
-    await page.waitForSelector('article[data-testid="tweet"]');
+  const tweets = await page.evaluate(() => {
+    const tweetElements = document.querySelectorAll('[data-testid="tweet"]');
+    return Array.from(tweetElements).map((tweet) => tweet.textContent);
+  });
 
-    // Get the tweets from the feed
-    const tweets = await page.evaluate(() => {
-      const tweetElements = document.querySelectorAll('article[data-testid="tweet"]');
-      return Array.from(tweetElements).map((tweet) => tweet.textContent);
-    });
+  console.log('Tweets:', tweets);
 
-    console.log('Tweets from the feed:');
-    tweets.forEach((tweet, index) => {
-      console.log(`Tweet ${index + 1}:`, tweet);
-    });
+  await page.close();
+}
 
-    await browser.close();
+async function waitForBrowser() {
+  while (true) {
+    try {
+      await puppeteer.connect({ browserURL: 'http://localhost:9222' });
+      break;
+    } catch (error) {
+      console.log('Waiting for browser to be ready...');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
   }
+}
 
-  readTweetsFromFeed();
+waitForBrowser()
+  .then(() => readTweets())
+  .catch((error) => console.error('Error:', error));
