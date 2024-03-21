@@ -7,14 +7,34 @@ async function readTweets() {
 
   await page.waitForSelector('[data-testid="tweet"]');
 
-  const tweets = await page.evaluate(() => {
-    const tweetElements = document.querySelectorAll('[data-testid="tweet"]');
-    return Array.from(tweetElements).map((tweet) => tweet.textContent);
-  });
+  const tweets = [];
+
+  for (let i = 0; i < 5; i++) {
+    await scrollDown(page);
+    await waitRandomTime(500, 1600);
+
+    const newTweets = await page.evaluate(() => {
+      const tweetElements = document.querySelectorAll('[data-testid="tweet"]');
+      return Array.from(tweetElements).map((tweet) => tweet.textContent);
+    });
+
+    tweets.push(...newTweets);
+  }
 
   console.log('Tweets:', tweets);
 
   await page.close();
+}
+
+async function scrollDown(page: puppeteer.Page) {
+  await page.evaluate(() => {
+    window.scrollBy(0, window.innerHeight);
+  });
+}
+
+async function waitRandomTime(min: number, max: number) {
+  const randomTime = Math.floor(Math.random() * (max - min + 1)) + min;
+  await new Promise((resolve) => setTimeout(resolve, randomTime));
 }
 
 async function waitForBrowser() {

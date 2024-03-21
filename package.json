@@ -13,5 +13,8 @@
     "@types/node": "^20.11.30",
     "puppeteer": "^22.6.0",
     "typescript": "^5.4.3"
+  },
+  "devDependencies": {
+    "@types/puppeteer": "^7.0.4"
   }
 }
